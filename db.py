@@ -164,12 +164,12 @@ def get_metric_snapshot(conn: sqlite3.Connection, scope_type: str, scope_value: 
 
 # ---------------------------------------------------------------- 발행 글
 def get_page(conn: sqlite3.Connection, page_key: str) -> Optional[sqlite3.Row]:
-    return conn.execute("SELECT * FROM pages WHERE page_key=?", (page_key,)).fetchone()
+    return conn.execute("SELECT * FROM pages WHERE slug=? OR page_key=?", (page_key, page_key)).fetchone()
 
 
 def upsert_page(conn: sqlite3.Connection, page: dict) -> None:
     stamp = _iso()
-    existing = get_page(conn, page["page_key"])
+    existing = get_page(conn, page.get("slug")) or get_page(conn, page["page_key"])
     first_published = existing["first_published_at"] if existing and existing["first_published_at"] else (
         stamp if page.get("status") == "published" else None
     )
@@ -180,12 +180,14 @@ def upsert_page(conn: sqlite3.Connection, page: dict) -> None:
                 window_start, window_end, content_hash, body_chars, quality_score,
                 status, file_path, first_published_at, updated_at, run_id)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-               ON CONFLICT(page_key) DO UPDATE SET
-                 slug=excluded.slug, title=excluded.title, description=excluded.description,
-                 category=excluded.category, content_hash=excluded.content_hash,
-                 body_chars=excluded.body_chars, quality_score=excluded.quality_score,
-                 status=excluded.status, file_path=excluded.file_path,
-                 updated_at=excluded.updated_at, run_id=excluded.run_id""",
+               ON CONFLICT(slug) DO UPDATE SET
+                 page_key=excluded.page_key, title=excluded.title, description=excluded.description,
+                 category=excluded.category, scope_type=excluded.scope_type, scope_value=excluded.scope_value,
+                 window_start=excluded.window_start, window_end=excluded.window_end,
+                 content_hash=excluded.content_hash, body_chars=excluded.body_chars,
+                 quality_score=excluded.quality_score, status=excluded.status,
+                 file_path=excluded.file_path, updated_at=excluded.updated_at,
+                 run_id=excluded.run_id""",
             (page["page_key"], page["slug"], page["title"], page["description"],
              page["category"], page["scope_type"], page["scope_value"], page["window_start"],
              page["window_end"], page.get("content_hash"), page.get("body_chars"),

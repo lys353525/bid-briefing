@@ -1,10 +1,10 @@
 {
-  "run_id": "run-20261108-060730",
-  "generated_at": "2026-11-08T06:08:11+09:00",
+  "run_id": "run-20261108-060909",
+  "generated_at": "2026-11-08T06:09:45+09:00",
   "site": {
     "site": "입찰동향 브리핑",
     "site_url": "https://lys353525.github.io/bid-briefing",
-    "built_at": "2026-11-08T06:08:10+09:00",
+    "built_at": "2026-11-08T06:09:44+09:00",
     "pages": 28,
     "detail_pages": 28,
     "excluded_sim": 0,
@@ -39,16 +39,37 @@
   "counts": {
     "collected": 900,
     "computed": 26,
-    "published": 25,
-    "held": 1,
+    "published": 26,
+    "held": 0,
     "skipped": 3
   },
   "quality": {
-    "passed": 25,
-    "held": 1,
+    "passed": 26,
+    "held": 0,
     "average_score": 1.0
   },
   "pages": [
+    {
+      "slug": "2026-w45-nationwide",
+      "title": "나라장터 입찰공고 주간 동향 (11월 2일~11월 8일) — 172건 600억 9,453만 원",
+      "description": "11월 2일~11월 8일 나라장터 입찰공고 172건을 집계했습니다. 총 배정예산 600억 9,453만 원, 평균 3억 8,277만 원, 전주 대비 건수 -84.0%. 지역·분야별 분포와 마감 임박 공고를 정리했습니다.",
+      "category": "주간 요약",
+      "scope": "national",
+      "value": "전국",
+      "tags": [
+        "나라장터",
+        "입찰공고",
+        "전국",
+        "주간 동향",
+        "조달청",
+        "배정예산"
+      ],
+      "score": 1.0,
+      "body_chars": 4253,
+      "updated": "2026-11-08T06:09:43+09:00",
+      "status": "published",
+      "file": "2026-w45-nationwide.md"
+    },
     {
       "slug": "2026-w45-top-budget",
       "title": "이번 주 배정예산 상위 입찰공고 10선 (11월 2일~11월 8일)",
@@ -67,7 +88,7 @@
       "score": 1.0,
       "body_chars": 2383,
       "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "status": "unchanged",
       "file": "2026-w45-top-budget.md"
     },
     {
@@ -87,8 +108,8 @@
       ],
       "score": 1.0,
       "body_chars": 3539,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-seoul.md"
     },
     {
@@ -108,8 +129,8 @@
       ],
       "score": 1.0,
       "body_chars": 3303,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-busan.md"
     },
     {
@@ -129,8 +150,8 @@
       ],
       "score": 1.0,
       "body_chars": 3481,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-daegu.md"
     },
     {
@@ -150,8 +171,8 @@
       ],
       "score": 1.0,
       "body_chars": 3282,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-incheon.md"
     },
     {
@@ -171,8 +192,8 @@
       ],
       "score": 1.0,
       "body_chars": 3271,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-ulsan.md"
     },
     {
@@ -192,8 +213,8 @@
       ],
       "score": 1.0,
       "body_chars": 3234,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-gyeonggi.md"
     },
     {
@@ -213,8 +234,8 @@
       ],
       "score": 1.0,
       "body_chars": 3192,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-gangwon.md"
     },
     {
@@ -234,8 +255,8 @@
       ],
       "score": 1.0,
       "body_chars": 3202,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-chungbuk.md"
     },
     {
@@ -255,8 +276,8 @@
       ],
       "score": 1.0,
       "body_chars": 3262,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-chungnam.md"
     },
     {
@@ -276,8 +297,8 @@
       ],
       "score": 1.0,
       "body_chars": 3166,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-jeonbuk.md"
     },
     {
@@ -297,8 +318,8 @@
       ],
       "score": 1.0,
       "body_chars": 3240,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-jeonnam.md"
     },
     {
@@ -318,8 +339,8 @@
       ],
       "score": 1.0,
       "body_chars": 3160,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-gyeongbuk.md"
     },
     {
@@ -339,8 +360,8 @@
       ],
       "score": 1.0,
       "body_chars": 3371,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-gyeongnam.md"
     },
     {
@@ -360,8 +381,8 @@
       ],
       "score": 1.0,
       "body_chars": 3208,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-region-jeju.md"
     },
     {
@@ -381,8 +402,8 @@
       ],
       "score": 1.0,
       "body_chars": 3655,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-construction.md"
     },
     {
@@ -402,8 +423,8 @@
       ],
       "score": 1.0,
       "body_chars": 3711,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-civil.md"
     },
     {
@@ -423,8 +444,8 @@
       ],
       "score": 1.0,
       "body_chars": 3578,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-electric.md"
     },
     {
@@ -444,8 +465,8 @@
       ],
       "score": 1.0,
       "body_chars": 3418,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:09+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-fire.md"
     },
     {
@@ -465,8 +486,8 @@
       ],
       "score": 1.0,
       "body_chars": 3659,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-facility.md"
     },
     {
@@ -486,8 +507,8 @@
       ],
       "score": 1.0,
       "body_chars": 3791,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-itsw.md"
     },
     {
@@ -507,8 +528,8 @@
       ],
       "score": 1.0,
       "body_chars": 3769,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-education.md"
     },
     {
@@ -528,8 +549,8 @@
       ],
       "score": 1.0,
       "body_chars": 3631,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-goods.md"
     },
     {
@@ -549,8 +570,8 @@
       ],
       "score": 1.0,
       "body_chars": 3483,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-research.md"
     },
     {
@@ -570,18 +591,12 @@
       ],
       "score": 1.0,
       "body_chars": 3520,
-      "updated": "2026-11-08T06:08:07+09:00",
-      "status": "published",
+      "updated": "2026-11-08T06:08:10+09:00",
+      "status": "unchanged",
       "file": "2026-w45-field-medical.md"
     }
   ],
-  "held_pages": [
-    {
-      "slug": "2026-w45-nationwide",
-      "reason": "duplicate: 최대 유사도 0.99 (national|전국|2026-11-08)",
-      "score": 0.9118
-    }
-  ],
+  "held_pages": [],
   "skipped_scopes": [
     {
       "scope": "region:광주",
@@ -600,10 +615,10 @@
     "raw_items": 2449,
     "revisions": 0,
     "metric_snapshots": 54,
-    "pages_published": 27,
-    "pages_held": 1,
-    "runs": 14,
-    "last_run": "run-20261108-060730"
+    "pages_published": 28,
+    "pages_held": 0,
+    "runs": 15,
+    "last_run": "run-20261108-060909"
   },
   "output_dir": "/workspace/pseo-engine/output"
 }

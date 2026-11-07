@@ -251,7 +251,8 @@ def run(settings: Settings) -> int:
         for facts in facts_list:
             subset = page_notices(facts, notices)
             md = formatter.render(facts, related=related_links(facts, facts_list))
-            q = quality_gate.validate(md, facts, subset, published_shingles, facts["page_key"])
+            page_id = facts["slug"]
+            q = quality_gate.validate(md, facts, subset, published_shingles, page_id)
             db.record_quality(conn, page_key=facts["page_key"], run_id=run_id,
                               passed=q["passed"], score=q["score"], details=q["checks"])
 
@@ -264,7 +265,7 @@ def run(settings: Settings) -> int:
                 facts={k: v for k, v in db_facts.items() if k != "top_rows"},
             )
 
-            existing = db.get_page(conn, facts["page_key"])
+            existing = db.get_page(conn, facts["slug"]) or db.get_page(conn, facts["page_key"])
             new_hash = content_hash(md, facts.get("generated_at", ""))
             unchanged = bool(existing and existing["content_hash"] == new_hash
                              and existing["status"] == "published" and out_path.exists())
@@ -272,8 +273,8 @@ def run(settings: Settings) -> int:
             if q["passed"]:
                 if not unchanged:
                     out_path.write_text(md, encoding="utf-8")
-                    db.replace_shingles(conn, facts["page_key"], q["shingles"])
-                    published_shingles[facts["page_key"]] = q["shingles"]
+                    db.replace_shingles(conn, page_id, q["shingles"])
+                    published_shingles[page_id] = q["shingles"]
                 db.upsert_page(conn, {
                     "page_key": facts["page_key"], "slug": facts["slug"],
                     "title": facts["title"], "description": facts["description"],
