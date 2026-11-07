@@ -38,7 +38,7 @@ KST = timezone(timedelta(hours=9), "KST")
 
 # ---------------------------------------------------------------- 사이트 정보
 SITE_NAME = os.environ.get("PSEO_SITE_NAME", "입찰동향 브리핑")
-SITE_URL = os.environ.get("PSEO_SITE_URL", "https://example.com").rstrip("/")
+SITE_URL = os.environ.get("PSEO_SITE_URL", "https://lys353525.github.io/bid-briefing").rstrip("/")
 SITE_LOCALE = "ko_KR"
 SITE_AUTHOR = "입찰동향 브리핑 편집부"
 
