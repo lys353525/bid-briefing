@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lys353525.github.io/bid-briefing/sitemap.xml
+Sitemap: https://bid-briefing.pages.dev/sitemap.xml
