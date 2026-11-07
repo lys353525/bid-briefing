@@ -8,7 +8,7 @@ python3 pipeline.py --mode live
 
 # 2. main 브랜치 docs/ 갱신 및 푸시
 cp -r site/* docs/
-git add docs output
+git add docs output site raw db.py pipeline.py pseo.db daily_update.sh .gitignore
 git commit -m "chore(auto): daily bid briefing data update $(date +%Y-%m-%d)" || true
 git push origin main || true
 

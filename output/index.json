@@ -1,7 +1,7 @@
 {
   "site": "입찰동향 브리핑",
   "site_url": "https://lys353525.github.io/bid-briefing",
-  "generated_at": "2026-11-08T06:09:44+09:00",
+  "generated_at": "2026-11-08T06:10:49+09:00",
   "data_mode": "live",
   "source": {
     "name": "조달청 나라장터 입찰공고정보서비스",
@@ -53,7 +53,7 @@
       "scope": "top",
       "value": "top-budget",
       "path": "/bids/2026-w45-top-budget/",
-      "updated": "2026-11-08T06:08:07+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -71,7 +71,7 @@
       "scope": "region",
       "value": "서울",
       "path": "/bids/2026-w45-region-seoul/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -89,7 +89,7 @@
       "scope": "region",
       "value": "부산",
       "path": "/bids/2026-w45-region-busan/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -107,7 +107,7 @@
       "scope": "region",
       "value": "대구",
       "path": "/bids/2026-w45-region-daegu/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -125,7 +125,7 @@
       "scope": "region",
       "value": "인천",
       "path": "/bids/2026-w45-region-incheon/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -143,7 +143,7 @@
       "scope": "region",
       "value": "울산",
       "path": "/bids/2026-w45-region-ulsan/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -161,7 +161,7 @@
       "scope": "region",
       "value": "경기",
       "path": "/bids/2026-w45-region-gyeonggi/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -179,7 +179,7 @@
       "scope": "region",
       "value": "강원",
       "path": "/bids/2026-w45-region-gangwon/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -197,7 +197,7 @@
       "scope": "region",
       "value": "충북",
       "path": "/bids/2026-w45-region-chungbuk/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -215,7 +215,7 @@
       "scope": "region",
       "value": "충남",
       "path": "/bids/2026-w45-region-chungnam/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -233,7 +233,7 @@
       "scope": "region",
       "value": "전북",
       "path": "/bids/2026-w45-region-jeonbuk/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -251,7 +251,7 @@
       "scope": "region",
       "value": "전남",
       "path": "/bids/2026-w45-region-jeonnam/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -269,7 +269,7 @@
       "scope": "region",
       "value": "경북",
       "path": "/bids/2026-w45-region-gyeongbuk/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -287,7 +287,7 @@
       "scope": "region",
       "value": "경남",
       "path": "/bids/2026-w45-region-gyeongnam/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -305,7 +305,7 @@
       "scope": "region",
       "value": "제주",
       "path": "/bids/2026-w45-region-jeju/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -323,7 +323,7 @@
       "scope": "field",
       "value": "시설공사",
       "path": "/bids/2026-w45-field-construction/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -341,7 +341,7 @@
       "scope": "field",
       "value": "토목·조경",
       "path": "/bids/2026-w45-field-civil/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -359,7 +359,7 @@
       "scope": "field",
       "value": "전기·통신",
       "path": "/bids/2026-w45-field-electric/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -377,7 +377,7 @@
       "scope": "field",
       "value": "소방·설비",
       "path": "/bids/2026-w45-field-fire/",
-      "updated": "2026-11-08T06:08:09+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -395,7 +395,7 @@
       "scope": "field",
       "value": "청소·시설관리",
       "path": "/bids/2026-w45-field-facility/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -413,7 +413,7 @@
       "scope": "field",
       "value": "정보통신·SW",
       "path": "/bids/2026-w45-field-itsw/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -431,7 +431,7 @@
       "scope": "field",
       "value": "교육·행사",
       "path": "/bids/2026-w45-field-education/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -449,7 +449,7 @@
       "scope": "field",
       "value": "물품·구매",
       "path": "/bids/2026-w45-field-goods/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -467,7 +467,7 @@
       "scope": "field",
       "value": "연구·컨설팅",
       "path": "/bids/2026-w45-field-research/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
@@ -485,7 +485,7 @@
       "scope": "field",
       "value": "의료·보건",
       "path": "/bids/2026-w45-field-medical/",
-      "updated": "2026-11-08T06:08:10+09:00",
+      "updated": "2026-11-08T06:09:44+09:00",
       "tags": [
         "나라장터",
         "입찰공고",
