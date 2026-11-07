@@ -472,6 +472,7 @@ def head_html(*, title: str, description: str, canonical: str, root: str,
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="naver-site-verification" content="0cf1e5c1dc15b03c73c6ce85bd37d8e81e3bb8e0">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{esc(canonical)}">
