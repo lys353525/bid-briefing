@@ -1,0 +1,14 @@
+{
+  "site": "입찰동향 브리핑",
+  "site_url": "https://bid-briefing.pages.dev",
+  "built_at": "2026-11-07T10:21:13+09:00",
+  "pages": 28,
+  "detail_pages": 28,
+  "excluded_sim": 0,
+  "data_mode": "live",
+  "sitemap_urls": 29,
+  "output_dir": "/workspace/pseo-engine/output",
+  "site_dir": "/workspace/pseo-engine/site",
+  "problems": [],
+  "generator": "builder.py (zero-dependency)"
+}
