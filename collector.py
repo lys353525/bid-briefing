@@ -263,7 +263,7 @@ def _http_get_json(url: str, timeout: int, retries: int, backoff: float) -> dict
 
 def _extract_items(payload: dict) -> tuple[list[dict], int, str]:
     """나라장터 응답 구조 방어적 파싱. (items, totalCount, resultCode)"""
-    response = payload.get("response") or {}
+    response = payload.get("response") or payload.get("nkoneps.com.response.ResponseError") or {}
     header = response.get("header") or {}
     code = str(header.get("resultCode") or "")
     message = str(header.get("resultMsg") or "")
@@ -289,44 +289,56 @@ def collect_live(settings: Settings, days: Optional[int] = None) -> dict:
                            "공공데이터포털에서 인증키를 발급해 설정하세요.")
     end = datetime.combine(settings.as_of, datetime.min.time(), tzinfo=KST) + timedelta(hours=23, minutes=59)
     start = datetime.combine(settings.as_of - timedelta(days=days - 1), datetime.min.time(), tzinfo=KST)
-    bgn = start.strftime("%Y%m%d%H%M")
-    fin = end.strftime("%Y%m%d%H%M")
+
+    # 나라장터 OpenAPI(BidPublicInfoService02)는 1회 조회 시 최대 7일(168시간) 간격만 허용한다.
+    # 초과 시 '입력범위값 초과 에러(resultCode: 07)'가 발생하므로 7일 이하 슬라이스로 분할한다.
+    slices: list[tuple[str, str]] = []
+    cur_start = start
+    while cur_start <= end:
+        cur_end = min(cur_start + timedelta(days=6, hours=23, minutes=59), end)
+        slices.append((cur_start.strftime("%Y%m%d%H%M"), cur_end.strftime("%Y%m%d%H%M")))
+        cur_start = datetime.combine(cur_end.date() + timedelta(days=1), datetime.min.time(), tzinfo=KST)
 
     all_items: list[dict] = []
     ops_report: dict[str, dict] = {}
     errors: list[str] = []
     calls = 0
     seen: set[str] = set()
+    target_count_per_op = settings.max_pages * settings.rows_per_page
 
     for op_name, op in API_OPERATIONS.items():
         received = 0
         pages = 0
         try:
-            for page_no in range(1, settings.max_pages + 1):
-                params = {
-                    "serviceKey": settings.api_key,
-                    "pageNo": str(page_no),
-                    "numOfRows": str(settings.rows_per_page),
-                    "type": "json",
-                    "inqryDiv": "1",
-                    "inqryBgnDt": bgn,
-                    "inqryEndDt": fin,
-                }
-                url = f"{SOURCE['api_base']}{op['path']}?{urllib.parse.urlencode(params)}"
-                payload = _http_get_json(url, COLLECT["timeout_sec"],
-                                         COLLECT["retries"], COLLECT["backoff_base"])
-                calls += 1
-                pages += 1
-                rows, total, _code = _extract_items(payload)
-                received += len(rows)
-                for row in rows:
-                    norm = normalize_item(row, op["biz_type"])
-                    if norm and norm["natural_key"] not in seen:
-                        seen.add(norm["natural_key"])
-                        all_items.append(norm)
-                if not rows or received >= total:
+            # 최신 공고부터 역순으로 수집 (필요시 이전 슬라이스로 확장)
+            for bgn, fin in reversed(slices):
+                for page_no in range(1, settings.max_pages + 1):
+                    params = {
+                        "serviceKey": settings.api_key,
+                        "pageNo": str(page_no),
+                        "numOfRows": str(settings.rows_per_page),
+                        "type": "json",
+                        "inqryDiv": "1",
+                        "inqryBgnDt": bgn,
+                        "inqryEndDt": fin,
+                    }
+                    url = f"{SOURCE['api_base']}{op['path']}?{urllib.parse.urlencode(params)}"
+                    payload = _http_get_json(url, COLLECT["timeout_sec"],
+                                             COLLECT["retries"], COLLECT["backoff_base"])
+                    calls += 1
+                    pages += 1
+                    rows, total, _code = _extract_items(payload)
+                    received += len(rows)
+                    for row in rows:
+                        norm = normalize_item(row, op["biz_type"])
+                        if norm and norm["natural_key"] not in seen:
+                            seen.add(norm["natural_key"])
+                            all_items.append(norm)
+                    if not rows or received >= total or received >= target_count_per_op:
+                        break
+                    time.sleep(COLLECT["request_pause_sec"])
+                if received >= target_count_per_op:
                     break
-                time.sleep(COLLECT["request_pause_sec"])
         except Exception as exc:  # noqa: BLE001 - 한 업무구분 실패가 전체를 죽이지 않게
             errors.append(f"{op_name}: {exc}")
             log(f"{op_name} 수집 실패 — {exc}", "WARN")
