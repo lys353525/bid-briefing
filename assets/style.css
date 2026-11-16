@@ -142,6 +142,29 @@ button{font:inherit}
 .delta.down{color:var(--down);background:rgba(28,98,185,.1)}
 .delta.flat{color:var(--flat);background:rgba(139,147,161,.12)}
 
+/* ---------- 지난 주차 아카이브 ---------- */
+.archive-list{display:grid;gap:10px}
+.archive-item{background:var(--surface);border:1px solid var(--line);border-radius:13px;
+  box-shadow:var(--shadow);overflow:hidden}
+.archive-item > summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
+  padding:14px 16px;cursor:pointer;list-style:none;position:relative}
+.archive-item > summary::-webkit-details-marker{display:none}
+.archive-item > summary::after{content:"+";margin-left:auto;font-size:19px;font-weight:400;
+  color:var(--brand);line-height:1;transition:transform .18s}
+.archive-item[open] > summary::after{content:"\2212"}
+.archive-item > summary:hover{background:#f8fbff}
+.archive-week{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.archive-window{font-size:12.5px;color:var(--muted)}
+.archive-count{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-weak);
+  padding:2px 9px;border-radius:999px;white-space:nowrap}
+.archive-body{padding:12px 16px 15px;border-top:1px solid var(--line);display:grid;gap:8px}
+.archive-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:13px}
+.archive-label{flex:0 0 auto;min-width:34px;font-size:11.5px;font-weight:800;color:var(--muted);
+  letter-spacing:.02em}
+.archive-link{color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px;font-size:12.5px;line-height:1.4}
+.archive-link:hover{color:var(--brand);border-color:#b9cdf2;background:#f8fbff;text-decoration:none}
+
 /* ---------- 자동화 소개 ---------- */
 .about{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.85fr);gap:32px;align-items:start}
 .about-copy h2{font-size:clamp(19px,2.4vw,23px);font-weight:800;margin-bottom:12px}
@@ -372,6 +395,7 @@ button{font:inherit}
   .hero{background:linear-gradient(135deg,#08152e 0%,#0f2f6b 55%,#15418d 100%)}
   .rank-amount .bar{background:#232b39}
   .chip:hover,.region-card:hover,.rel-card:hover,.btn:hover,.faq-item summary:hover{background:#1a2333}
+  .archive-item > summary:hover,.archive-link:hover{background:#1a2333}
   .prose-sec code{background:#1b2230;border-color:#2b3444}
   .source-box{background:#131a25}
   .callout{background:#1a2540;color:#c9dcff}
