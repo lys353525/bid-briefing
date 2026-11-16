@@ -100,6 +100,37 @@ def parse_amount(text: str) -> int:
     return int(total) if found else 0
 
 
+# 주차 키: 슬러그 앞부분('2026-w47-region-seoul' → '2026-w47')
+_WEEK_RE = re.compile(r"^(\d{4}-w\d{2})-")
+
+
+def page_week(page: "Page") -> str:
+    """페이지 슬러그에서 주차 키를 뽑는다. 없으면 빈 문자열."""
+    m = _WEEK_RE.match(page.slug or "")
+    return m.group(1) if m else ""
+
+
+def week_label(week_key: str) -> str:
+    """'2026-w47' → '2026년 47주차'."""
+    m = re.fullmatch(r"(\d{4})-w(\d{2})", week_key or "")
+    return f"{m.group(1)}년 {int(m.group(2))}주차" if m else (week_key or "")
+
+
+def latest_per_group(pages: list["Page"], key) -> dict:
+    """그룹(지역명·분야명 등)마다 가장 최신 주차 1건만 남긴다.
+
+    같은 지역의 w45·w46·w47 리포트가 모두 있어도 메인 카드에는 하나만 노출되도록,
+    (주차, 갱신시각)이 가장 큰 페이지를 고른다. 과거 주차 HTML 파일 자체는 그대로 둔다.
+    """
+    best: dict = {}
+    for p in pages:
+        k = key(p)
+        cur = best.get(k)
+        if cur is None or (page_week(p), p.updated or "") > (page_week(cur), cur.updated or ""):
+            best[k] = p
+    return best
+
+
 def parse_percent(text: str) -> Optional[float]:
     m = re.search(r"([+-]?\d+(?:\.\d+)?)\s*%", str(text or ""))
     if not m:
@@ -545,7 +576,7 @@ def site_footer(root: str, built_at: str, pages: int, sim: bool) -> str:
     <div class="foot-meta">
       <p>데이터 출처: <a href="{esc(SOURCE['url'])}" rel="noopener" target="_blank">{esc(SOURCE['name'])}</a></p>
       <p>리포트 {pages}장 · 최근 빌드 {esc(fmt_dt(built_at))}</p>
-      <p><a href="{root}sitemap.xml">사이트맵</a> · <a href="{root}index.html">홈</a></p>
+      <p><a href="{root}sitemap.xml">사이트맵</a> · <a href="{root}index.html#archive">지난 주차</a> · <a href="{root}index.html">홈</a></p>
     </div>
   </div>
   <div class="wrap foot-note"><p>{note}</p></div>
@@ -915,11 +946,93 @@ SHARE_JS = r"""(function () {
 # ==========================================================================
 # 6. 메인 페이지
 # ==========================================================================
+def _scope_latest(pages: list[Page], scope: str) -> Optional[Page]:
+    """해당 범위에서 가장 최신 주차 페이지 1건."""
+    cand = [p for p in pages if p.scope == scope]
+    if not cand:
+        return None
+    return max(cand, key=lambda p: (page_week(p), p.updated or ""))
+
+
+def archive_html(pages: list[Page], latest_week: str) -> str:
+    """지난 주차 리포트를 접이식 목록으로 정리한다(검색 색인·내부 링크 유지)."""
+    week_keys = sorted({page_week(p) for p in pages if page_week(p)})
+    old_weeks = [w for w in week_keys if not latest_week or w < latest_week]
+    if not old_weeks:
+        return ""
+
+    items = []
+    for wk in reversed(old_weeks):
+        group = [p for p in pages if page_week(p) == wk]
+        a_nat = next((p for p in group if p.scope == "national"), None)
+        a_top = next((p for p in group if p.scope == "top"), None)
+        a_regions = sorted((p for p in group if p.scope == "region"),
+                           key=lambda p: -parse_amount(
+                               (p.metrics().get("총 배정예산") or {}).get("value", "")))
+        a_fields = sorted((p for p in group if p.scope == "field"),
+                          key=lambda p: -parse_amount(
+                              (p.metrics().get("총 배정예산") or {}).get("value", "")))
+
+        head_links = []
+        if a_nat:
+            head_links.append(f'<a class="archive-link" href="bids/{esc(a_nat.slug)}.html">전국 브리핑</a>')
+        if a_top:
+            head_links.append(f'<a class="archive-link" href="bids/{esc(a_top.slug)}.html">예산 TOP 10</a>')
+
+        def row(label: str, links: list[str]) -> str:
+            if not links:
+                return ""
+            return (f'<p class="archive-row"><span class="archive-label">{label}</span>'
+                    f'{"".join(links)}</p>')
+
+        links_html = "".join([
+            (f'<p class="archive-row"><span class="archive-label">요약</span>{"".join(head_links)}</p>'
+             if head_links else ""),
+            row("지역", [f'<a class="archive-link" href="bids/{esc(p.slug)}.html">{esc(p.region)}</a>'
+                        for p in a_regions]),
+            row("분야", [f'<a class="archive-link" href="bids/{esc(p.slug)}.html">'
+                        f'{esc(p.field_name or p.region)}</a>' for p in a_fields]),
+        ])
+        counts = f"지역 {len(a_regions)} · 분야 {len(a_fields)}"
+        items.append(f"""<details class="archive-item">
+  <summary>
+    <span class="archive-week">{esc(week_label(wk))}</span>
+    <span class="archive-window">{esc(a_nat.window_label if a_nat else "")}</span>
+    <span class="archive-count">{esc(counts)}</span>
+  </summary>
+  <div class="archive-body">{links_html}</div>
+</details>""")
+
+    return f"""  <section class="section section-alt" id="archive">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>지난 주차 아카이브</h2>
+          <p class="section-sub">이전 주차 리포트도 계속 열람할 수 있습니다. 주차를 펼치면 그 주의 지역·분야별 리포트로 이동합니다.</p>
+        </div>
+        <span class="section-count">{len(old_weeks)}개 주차</span>
+      </div>
+      <div class="archive-list">{''.join(items)}</div>
+    </div>
+  </section>
+
+"""
+
+
 def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
-    nat = next((p for p in pages if p.scope == "national"), None)
-    top = next((p for p in pages if p.scope == "top"), None)
-    regions = [p for p in pages if p.scope == "region"]
-    fields = [p for p in pages if p.scope == "field"]
+    # 메인 카드는 최신 주차 1건씩만 노출한다(과거 주차 페이지는 상세 URL로 남겨 둔다).
+    week_keys = sorted({page_week(p) for p in pages if page_week(p)})
+    latest_week = week_keys[-1] if week_keys else ""
+    nat = _scope_latest(pages, "national")
+    top = _scope_latest(pages, "top")
+    # 카드는 최신 주차 페이지만. 같은 지역·분야의 과거 주차 페이지는 상세 URL·아카이브로 남긴다.
+    region_all = [p for p in pages if p.scope == "region"]
+    field_all = [p for p in pages if p.scope == "field"]
+    region_latest = latest_per_group(region_all, lambda p: p.region)
+    field_latest = latest_per_group(field_all, lambda p: p.field_name or p.region)
+    regions = [p for p in region_all if page_week(p) == latest_week] or list(region_latest.values())
+    fields = [p for p in field_all if page_week(p) == latest_week] or list(field_latest.values())
+    week_tag = week_label(latest_week)
     sim = any(p.is_sim for p in pages)
 
     # --- 하이라이트 배너 ---------------------------------------------------
@@ -993,7 +1106,18 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
   <span class="region-top"><span class="region-name">{esc(p.region)}</span>{delta_chip(dl)}</span>
   <span class="region-line"><b>{esc(cnt)}</b> <span class="sep" aria-hidden="true">·</span> {esc(bud)}</span>
 </a>""")
-    missing = [r for r in REGIONS if r not in {p.region for p in regions}]
+    current_regions = {p.region for p in regions}
+    missing_bits = []
+    for r in REGIONS:
+        if r in current_regions:
+            continue
+        old = region_latest.get(r)
+        if old:  # 이번 주에는 없지만 과거 주차 리포트는 있다 → 그 페이지로 연결
+            missing_bits.append(f'<a href="bids/{esc(old.slug)}.html">{esc(r)}</a>'
+                                f' ({esc(week_label(page_week(old)))})')
+        else:
+            missing_bits.append(esc(r))
+    missing_html = ", ".join(missing_bits)
 
     # --- 분야 --------------------------------------------------------------
     field_chips = []
@@ -1066,12 +1190,12 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
       <div class="section-head">
         <div>
           <h2>지역별 입찰 동향</h2>
-          <p class="section-sub">기관 소재지 기준으로 묶은 결과입니다. 예산 규모가 큰 순서로 배치했습니다.</p>
+          <p class="section-sub">기관 소재지 기준으로 묶은 결과입니다. 최신 {esc(week_tag)} 리포트를 예산 규모가 큰 순서로 배치했습니다.</p>
         </div>
-        <span class="section-count">{len(regions)}개 시도</span>
+        <span class="section-count">{len(regions)}개 시도 · {esc(week_tag)}</span>
       </div>
       <div class="region-grid">{''.join(region_cards)}</div>
-      {f'<p class="grid-note">표본이 부족해 이번 주에 생성되지 않은 지역: {esc(", ".join(missing))}</p>' if missing else ''}
+      {f'<p class="grid-note">이번 주({esc(week_tag)}) 표본이 부족해 새 리포트가 없는 지역: {missing_html}</p>' if missing_bits else ''}
     </div>
   </section>
 
@@ -1080,15 +1204,16 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
       <div class="section-head">
         <div>
           <h2>분야별 입찰 동향</h2>
-          <p class="section-sub">업종명과 공고명 키워드로 분류한 참고 기준입니다(공식 통계 분류 아님).</p>
+          <p class="section-sub">업종명과 공고명 키워드로 분류한 참고 기준입니다(공식 통계 분류 아님). 최신 {esc(week_tag)} 기준입니다.</p>
         </div>
-        <span class="section-count">{len(fields)}개 분야</span>
+        <span class="section-count">{len(fields)}개 분야 · {esc(week_tag)}</span>
       </div>
       <div class="field-cloud">{''.join(field_chips)}</div>
     </div>
   </section>
 
-  <section class="section section-alt" id="about">
+  {archive_html(pages, latest_week)}
+  <section class="section" id="about">
     <div class="wrap about">
       <div class="about-copy">
         <h2>이 사이트는 이렇게 만들어집니다</h2>
@@ -1334,6 +1459,29 @@ button{font:inherit}
 .delta.down{color:var(--down);background:rgba(28,98,185,.1)}
 .delta.flat{color:var(--flat);background:rgba(139,147,161,.12)}
 
+/* ---------- 지난 주차 아카이브 ---------- */
+.archive-list{display:grid;gap:10px}
+.archive-item{background:var(--surface);border:1px solid var(--line);border-radius:13px;
+  box-shadow:var(--shadow);overflow:hidden}
+.archive-item > summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
+  padding:14px 16px;cursor:pointer;list-style:none;position:relative}
+.archive-item > summary::-webkit-details-marker{display:none}
+.archive-item > summary::after{content:"+";margin-left:auto;font-size:19px;font-weight:400;
+  color:var(--brand);line-height:1;transition:transform .18s}
+.archive-item[open] > summary::after{content:"\2212"}
+.archive-item > summary:hover{background:#f8fbff}
+.archive-week{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.archive-window{font-size:12.5px;color:var(--muted)}
+.archive-count{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-weak);
+  padding:2px 9px;border-radius:999px;white-space:nowrap}
+.archive-body{padding:12px 16px 15px;border-top:1px solid var(--line);display:grid;gap:8px}
+.archive-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:13px}
+.archive-label{flex:0 0 auto;min-width:34px;font-size:11.5px;font-weight:800;color:var(--muted);
+  letter-spacing:.02em}
+.archive-link{color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px;font-size:12.5px;line-height:1.4}
+.archive-link:hover{color:var(--brand);border-color:#b9cdf2;background:#f8fbff;text-decoration:none}
+
 /* ---------- 자동화 소개 ---------- */
 .about{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.85fr);gap:32px;align-items:start}
 .about-copy h2{font-size:clamp(19px,2.4vw,23px);font-weight:800;margin-bottom:12px}
@@ -1564,6 +1712,7 @@ button{font:inherit}
   .hero{background:linear-gradient(135deg,#08152e 0%,#0f2f6b 55%,#15418d 100%)}
   .rank-amount .bar{background:#232b39}
   .chip:hover,.region-card:hover,.rel-card:hover,.btn:hover,.faq-item summary:hover{background:#1a2333}
+  .archive-item > summary:hover,.archive-link:hover{background:#1a2333}
   .prose-sec code{background:#1b2230;border-color:#2b3444}
   .source-box{background:#131a25}
   .callout{background:#1a2540;color:#c9dcff}
