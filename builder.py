@@ -45,6 +45,13 @@ from config import (
 DOW = ["월", "화", "수", "목", "금", "토", "일"]
 BUILD_MARKER = ".pseo-site"
 
+# 검색·통계 연동 (2026-11-16)
+#   GOOGLE_SITE_VERIFICATION: Google Search Console URL 접두어 속성 소유확인 메타태그 값
+#   GA_MEASUREMENT_ID: Google Analytics 4 웹 스트림 측정 ID
+GOOGLE_SITE_VERIFICATION = os.environ.get(
+    "PSEO_GSC_VERIFICATION", "7C0MgbH_cVhMlOo1iZmqfOOvE4cN2hqTyoHaV2kJU3c")
+GA_MEASUREMENT_ID = os.environ.get("PSEO_GA_ID", "G-QCGG6NJ6RD")
+
 
 # ==========================================================================
 # 1. 유틸
@@ -473,6 +480,7 @@ def head_html(*, title: str, description: str, canonical: str, root: str,
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="naver-site-verification" content="0cf1e5c1dc15b03c73c6ce85bd37d8e81e3bb8e0">
+<meta name="google-site-verification" content="{GOOGLE_SITE_VERIFICATION}">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{esc(canonical)}">
@@ -489,6 +497,13 @@ def head_html(*, title: str, description: str, canonical: str, root: str,
 <meta name="twitter:description" content="{esc(description)}">
 <link rel="icon" href="{root}assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/style.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){{dataLayer.push(arguments);}}
+gtag('js', new Date());
+gtag('config', '{GA_MEASUREMENT_ID}');
+</script>
 {extra}{ld}
 </head>"""
 
