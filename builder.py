@@ -7,6 +7,7 @@
 만들어지는 것
   site/index.html              메인(전국 하이라이트·TOP10·지역 그리드·분야 뱃지)
   site/bids/{slug}.html        상세 리포트(표·지표 카드·FAQ·출처·JSON-LD)
+  site/tools/bid-calculator.html  투찰금액·낙찰하한율·보증금 계산기(calcpage.py)
   site/assets/style.css        공통 스타일(외부 CDN 없음, 다크모드·모바일 대응)
   site/assets/favicon.svg      파비콘
   site/sitemap.xml             사이트맵
@@ -38,6 +39,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import calcpage
 from config import (
     BASE_DIR, KST, REGIONS, SITE_NAME, SITE_URL, SOURCE, log,
 )
@@ -555,6 +557,7 @@ def site_header(root: str, active: str = "") -> str:
       <a href="{root}index.html#top10"{cls('top')}>예산 TOP 10</a>
       <a href="{root}index.html#regions"{cls('region')}>지역별</a>
       <a href="{root}index.html#fields"{cls('field')}>분야별</a>
+      <a href="{root}{calcpage.TOOL_PATH}"{cls('calc')}>입찰 계산기</a>
       <a href="{root}index.html#about">자동화</a>
     </nav>
   </div>
@@ -1167,7 +1170,10 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
       {hero_h}
       <p class="hero-lead">{hero_lead}</p>
       <div class="hero-stats">{''.join(hero_stats)}</div>
-      {hero_link}
+      <div class="hero-actions">
+        {hero_link}
+        <a class="hero-cta ghost" href="tools/bid-calculator.html">투찰금액 계산기 <span aria-hidden="true">→</span></a>
+      </div>
       {sim_note}
     </div>
   </section>
@@ -1209,6 +1215,35 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
         <span class="section-count">{len(fields)}개 분야 · {esc(week_tag)}</span>
       </div>
       <div class="field-cloud">{''.join(field_chips)}</div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="tools">
+    <div class="wrap">
+      <div class="tool-promo">
+        <div class="tool-promo-copy">
+          <p class="tool-promo-kicker">무료 도구</p>
+          <h2>투찰금액·낙찰하한율·보증금 계산기</h2>
+          <p>기초금액과 사정률만 넣으면 예정가격과 투찰금액(낙찰하한가)이 바로 나옵니다.
+          사정률 ±2% 구간별 비교표와 입찰보증금·계약보증금, 지급각서 대체 여부까지 한 화면에서
+          확인하세요. 설치·로그인 없이 무료입니다.</p>
+          <ul class="tool-promo-list">
+            <li>사정률 0.5% 간격 구간별 투찰금액 비교</li>
+            <li>낙찰하한율 프리셋(공사·물품·용역 2026 기준)</li>
+            <li>입찰보증금 5%·계약보증금 10%와 지급각서 안내</li>
+          </ul>
+          <a class="tool-promo-cta" href="tools/bid-calculator.html">계산기 열기 <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="tool-promo-visual" aria-hidden="true">
+          <div class="mini-calc">
+            <p class="mini-label">기초금액</p>
+            <p class="mini-amount">100,000,000원</p>
+            <p class="mini-row"><span>사정률</span><b>100.00%</b></p>
+            <p class="mini-row"><span>낙찰하한율</span><b>89.745%</b></p>
+            <p class="mini-result">투찰금액 <b>89,745,000원</b></p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1254,6 +1289,10 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
 def write_sitemap(site_dir: Path, site_url: str, pages: list[Page], built_at: str) -> int:
     items = [f"  <url><loc>{esc(site_url)}/</loc><lastmod>{built_at[:10]}</lastmod>"
              f"<changefreq>daily</changefreq><priority>1.0</priority></url>"]
+    # 실무 도구(계산기)는 매일 갱신되는 데이터 페이지가 아니므로 priority만 높게 둔다.
+    items.append(f"  <url><loc>{esc(site_url)}/{esc(calcpage.TOOL_PATH)}</loc>"
+                 f"<lastmod>{built_at[:10]}</lastmod><changefreq>monthly</changefreq>"
+                 f"<priority>0.9</priority></url>")
     for p in pages:
         lastmod = (p.updated or built_at)[:10]
         items.append(f"  <url><loc>{esc(site_url)}/bids/{esc(p.slug)}.html</loc>"
@@ -1296,6 +1335,30 @@ def write_404(site_dir: Path, site_url: str, built_at: str = "") -> None:
 """, encoding="utf-8")
 
 
+def write_calculator(site_dir: Path, site_url: str, built_at: str,
+                     pages: int = 0, sim: bool = False) -> Path:
+    """실무 도구 페이지(site/tools/bid-calculator.html)를 생성한다.
+
+    매일 파이프라인이 builder.build()를 다시 돌리기 때문에, 수동 HTML이 아니라 이 함수로
+    만들어야 다음 06:00 무인 빌드에서도 페이지와 사이트맵 링크가 유지된다.
+    """
+    root = "../"
+    out = site_dir / calcpage.TOOL_PATH
+    out.parent.mkdir(parents=True, exist_ok=True)
+    head = head_html(title=calcpage.TOOL_TITLE, description=calcpage.TOOL_DESC,
+                     canonical=f"{site_url}/{calcpage.TOOL_PATH}", root=root,
+                     ld=calcpage.ld_json(site_url, built_at))
+    out.write_text(f"""{head}
+<body class="tool">
+{site_header(root, 'calc')}
+{calcpage.body_html(root)}
+{site_footer(root, built_at, pages, sim)}
+</body>
+</html>
+""", encoding="utf-8")
+    return out
+
+
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="입찰동향 브리핑">
 <rect width="64" height="64" rx="15" fill="#14459c"/>
 <rect x="14" y="34" width="8" height="16" rx="3" fill="#ffffff"/>
@@ -1308,7 +1371,7 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="i
 def write_assets(site_dir: Path) -> None:
     assets = site_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    (assets / "style.css").write_text(CSS, encoding="utf-8")
+    (assets / "style.css").write_text(CSS + calcpage.CALC_CSS, encoding="utf-8")
     (assets / "favicon.svg").write_text(FAVICON, encoding="utf-8")
 
 
@@ -1389,6 +1452,10 @@ button{font:inherit}
 .hero-cta{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px;
   color:#0b2250;background:#fff;padding:11px 18px;border-radius:999px;box-shadow:0 8px 20px -10px rgba(0,0,0,.6)}
 .hero-cta:hover{text-decoration:none;transform:translateY(-1px)}
+.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.hero-cta.ghost{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.5);
+  box-shadow:none;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.hero-cta.ghost:hover{background:rgba(255,255,255,.26)}
 .sim-note{margin-top:18px;font-size:12.5px;color:#ffd9c2;background:rgba(180,71,15,.22);
   border:1px solid rgba(255,190,150,.35);padding:9px 13px;border-radius:10px;display:inline-block}
 .sim-note b{color:#ffc9a3}
@@ -1451,6 +1518,34 @@ button{font:inherit}
 .chip-name{font-size:14px;font-weight:700}
 .chip-num{font-size:12.5px;font-weight:700;color:var(--brand)}
 .chip-budget{font-size:12px;color:var(--muted);padding-left:8px;border-left:1px solid var(--line)}
+
+/* ---------- 계산기 안내 카드 ---------- */
+.tool-promo{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(250px,.85fr);gap:26px;
+  align-items:center;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+.tool-promo-kicker{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.05em;
+  color:var(--brand);background:var(--brand-weak);padding:4px 10px;border-radius:7px}
+.tool-promo h2{margin:12px 0 10px;font-size:clamp(19px,2.6vw,25px);font-weight:800;letter-spacing:-.025em}
+.tool-promo-copy > p{color:var(--ink-2);font-size:14.5px;line-height:1.75;max-width:56ch}
+.tool-promo-list{display:grid;gap:6px;margin:14px 0 18px}
+.tool-promo-list li{position:relative;padding-left:19px;font-size:13.5px;color:var(--ink-2)}
+.tool-promo-list li::before{content:"";position:absolute;left:3px;top:.52em;width:8px;height:8px;
+  border-radius:3px;background:var(--brand-weak);border:2px solid var(--brand-2)}
+.tool-promo-cta{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;
+  font-weight:700;font-size:14px;padding:11px 20px;border-radius:999px;
+  box-shadow:0 10px 22px -14px rgba(20,69,156,.9)}
+.tool-promo-cta:hover{background:#103a86;color:#fff;text-decoration:none;transform:translateY(-1px)}
+.mini-calc{background:linear-gradient(135deg,#0b2250,#14459c 60%,#1c56bd);color:#fff;
+  border-radius:16px;padding:18px 19px;box-shadow:0 14px 32px -20px rgba(11,34,80,.9)}
+.mini-label{font-size:11.5px;color:#bcd2ff;font-weight:700}
+.mini-amount{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.mini-row{display:flex;justify-content:space-between;gap:10px;margin-top:9px;font-size:12.5px;color:#cfe0ff}
+.mini-row b{color:#fff;font-variant-numeric:tabular-nums}
+.mini-result{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);
+  font-size:12.5px;color:#cfe0ff}
+.mini-result b{display:block;margin-top:3px;font-size:16.5px;font-weight:800;color:#fff;
+  font-variant-numeric:tabular-nums}
+@media (max-width:860px){.tool-promo{grid-template-columns:1fr;gap:18px;padding:20px}}
 
 /* ---------- 델타 칩 ---------- */
 .delta{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;
@@ -1744,7 +1839,7 @@ def _reset_site(site_dir: Path, verbose: bool = False) -> None:
     """생성물만 지운다(사용자가 넣어둔 파일은 건드리지 않는다)."""
     if not site_dir.exists():
         return
-    for name in ("bids", "assets"):
+    for name in ("bids", "assets", "tools"):
         target = site_dir / name
         if target.is_dir():
             shutil.rmtree(target)
@@ -1789,6 +1884,8 @@ def build(*, output_dir: Path | str | None = None, site_dir: Path | str | None =
             print(f"  ✔ bids/{out.name}")
 
     (site_dir / "index.html").write_text(index_body(pages, site_url, built_at), encoding="utf-8")
+    write_calculator(site_dir, site_url, built_at, pages=len(pages),
+                     sim=any(p.is_sim for p in pages))
     write_404(site_dir, site_url, built_at)
     sitemap_count = write_sitemap(site_dir, site_url, pages, built_at)
     write_robots(site_dir, site_url)
