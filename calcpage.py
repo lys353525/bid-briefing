@@ -502,6 +502,13 @@ body.tool .section:first-of-type{padding-top:26px}
   .preset{padding:7px 9px}
   .input-money input{font-size:17.5px}
 }
+/* 좁은 화면에서는 표를 가로 스크롤 없이 한눈에 보이도록 줄인다 */
+@media (max-width:560px){
+  .calc-table{min-width:0;font-size:11.5px}
+  .calc-table thead th{padding:8px 5px;font-size:10.5px}
+  .calc-table td{padding:8px 5px}
+  .calc-table .now-tag{margin-left:3px;padding:1px 3px;font-size:9.5px}
+}
 @media (prefers-color-scheme:dark){
   .preset:hover,.chip-btn:hover{background:#1a2333}
   .bond-note{background:#1a2540;color:#c9dcff}
