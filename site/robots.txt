@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://bid-briefing.pages.dev/sitemap.xml
