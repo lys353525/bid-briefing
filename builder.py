@@ -1322,7 +1322,7 @@ def write_sitemap(site_dir: Path, site_url: str, pages: list[Page], built_at: st
     # 실무자용 공고 검색 페이지 — 키워드·지역·마감임박으로 바로 진입하는 검색 유입의 주력
     items.append(f"  <url><loc>{esc(site_url)}/{esc(searchpage.TOOL_PATH)}</loc>"
                  f"<lastmod>{built_at[:10]}</lastmod><changefreq>daily</changefreq>"
-                 f"<priority>0.95</priority></url>")
+                 f"<priority>0.9</priority></url>")
     # 실무 도구(계산기)는 매일 갱신되는 데이터 페이지가 아니므로 priority만 높게 둔다.
     items.append(f"  <url><loc>{esc(site_url)}/{esc(calcpage.TOOL_PATH)}</loc>"
                  f"<lastmod>{built_at[:10]}</lastmod><changefreq>monthly</changefreq>"
