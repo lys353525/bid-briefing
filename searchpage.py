@@ -108,7 +108,12 @@ def collect_notices(*, db_path: Path | str | None = None, as_of: date | None = N
     finally:
         conn.close()
 
-    # 공고번호+차수 기준 중복 제거 (정정 공고는 revision 이 큰 쪽을 남긴다)
+    now_ms = _epoch_ms(datetime.now(KST))
+
+    # 같은 공고가 차수·공고번호를 바꿔 여러 번 올라오므로 두 단계로 중복을 정리한다.
+    #  1) 공고번호가 같은 건 → 가장 나중 차수·정정만
+    #  2) 공고명+기관이 같은 건 → 아직 열려 있는 것, 그다음 최근 게시만
+    #     (정정·재공고가 새 공고번호로 올라오면 같은 제목 카드가 두 장 보이기 때문)
     best: dict[tuple[str, str], dict] = {}
     for item in raw_items:
         if str(item.get("_simulated", "")).lower() in ("true", "1", "yes"):
@@ -116,14 +121,20 @@ def collect_notices(*, db_path: Path | str | None = None, as_of: date | None = N
         rec = build_notice(item, today)
         if not rec:
             continue
-        key = (rec["no"], rec["ord"])
+        key = (rec["name"], rec["org"])
+        close_ms = _epoch_ms(rec.get("close"))
+        rank = (close_ms > now_ms, rec["posted"], rec["ord"], rec["revision"])
         prev = best.get(key)
-        if prev is None or rec["revision"] >= prev["revision"]:
+        if prev is None:
+            best[key] = rec
+            continue
+        prev_rank = (_epoch_ms(prev.get("close")) > now_ms, prev["posted"],
+                     prev["ord"], prev["revision"])
+        if rank > prev_rank:
             best[key] = rec
 
     recent_from = today - timedelta(days=RECENT_DAYS)
     open_from = today - timedelta(days=OPEN_GRACE_DAYS)
-    now_ms = _epoch_ms(datetime.now(KST))
     picked: list[dict] = []
     for rec in best.values():
         close_date = rec.get("close_date")
@@ -440,7 +451,7 @@ def body_html(root: str = "../", notices: list[dict] | None = None,
         <ul class="source-list">
           <li>출처: 공공데이터포털 조달청 나라장터 입찰공고정보서비스(공사·용역·물품) — 매일 1회 자동 수집</li>
           <li>기초금액은 공고의 배정예산(부가세 포함) 표기값을 쓰고, 없으면 추정가격에 부가세를 더해 계산합니다.</li>
-          <li>지역은 발주기관·수요기관명 기준 분류이며, 실제 참가자격의 지역 제한과 다를 수 있습니다.</li>
+          <li>지역은 발주기관·수요기관명과 참가제한지역 표기를 함께 보고 분류하며, 실제 참가자격의 지역 제한과 다를 수 있습니다.</li>
           <li class="warn">입찰 판단의 최종 근거는 나라장터 원문 공고문입니다. 이 페이지는 탐색을 돕는 도구입니다.</li>
         </ul>
       </div>
