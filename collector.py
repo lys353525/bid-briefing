@@ -309,34 +309,58 @@ def collect_live(settings: Settings, days: Optional[int] = None) -> dict:
     for op_name, op in API_OPERATIONS.items():
         received = 0
         pages = 0
+
+        def call_page(page_no: int, bgn: str, fin: str) -> tuple[list[dict], int]:
+            """오퍼레이션 1페이지 호출 → (행 목록, 전체 건수)."""
+            params = {
+                "serviceKey": settings.api_key,
+                "pageNo": str(page_no),
+                "numOfRows": str(settings.rows_per_page),
+                "type": "json",
+                "inqryDiv": "1",
+                "inqryBgnDt": bgn,
+                "inqryEndDt": fin,
+            }
+            url = f"{SOURCE['api_base']}{op['path']}?{urllib.parse.urlencode(params)}"
+            payload = _http_get_json(url, COLLECT["timeout_sec"],
+                                     COLLECT["retries"], COLLECT["backoff_base"])
+            rows, total, _code = _extract_items(payload)
+            return rows, total
+
         try:
             # 최신 공고부터 역순으로 수집 (필요시 이전 슬라이스로 확장)
             for bgn, fin in reversed(slices):
-                for page_no in range(1, settings.max_pages + 1):
-                    params = {
-                        "serviceKey": settings.api_key,
-                        "pageNo": str(page_no),
-                        "numOfRows": str(settings.rows_per_page),
-                        "type": "json",
-                        "inqryDiv": "1",
-                        "inqryBgnDt": bgn,
-                        "inqryEndDt": fin,
-                    }
-                    url = f"{SOURCE['api_base']}{op['path']}?{urllib.parse.urlencode(params)}"
-                    payload = _http_get_json(url, COLLECT["timeout_sec"],
-                                             COLLECT["retries"], COLLECT["backoff_base"])
-                    calls += 1
-                    pages += 1
-                    rows, total, _code = _extract_items(payload)
+                # 이 API 는 공고게시일 오름차순으로 돌려준다(1페이지가 구간의 가장 오래된 공고).
+                # 1페이지로 전체 건수를 확인해, 구간이 한 번에 받을 수 있는 양보다 많으면
+                # '마지막 페이지'(=가장 최근 공고)부터 거꾸로 가져온다. 그냥 1~3페이지만 받으면
+                # 7일 구간의 앞 3일치에 머물러 데이터가 며칠씩 뒤처졌다(2026-11-28 확인).
+                first_rows, total = call_page(1, bgn, fin)
+                calls += 1
+                pages += 1
+                per_page = settings.rows_per_page
+                last_page = max(1, -(-int(total or 0) // per_page))
+                if total and total > per_page * settings.max_pages:
+                    page_nos = list(range(last_page, max(0, last_page - settings.max_pages), -1))
+                else:
+                    page_nos = list(range(1, min(last_page, settings.max_pages) + 1))
+
+                for page_no in page_nos:
+                    if page_no == 1:
+                        rows = first_rows          # 1페이지는 위에서 이미 받았다
+                    else:
+                        rows, _total = call_page(page_no, bgn, fin)
+                        calls += 1
+                        pages += 1
                     received += len(rows)
                     for row in rows:
                         norm = normalize_item(row, op["biz_type"])
                         if norm and norm["natural_key"] not in seen:
                             seen.add(norm["natural_key"])
                             all_items.append(norm)
-                    if not rows or received >= total or received >= target_count_per_op:
+                    if received >= target_count_per_op:
                         break
-                    time.sleep(COLLECT["request_pause_sec"])
+                    if page_no != page_nos[-1]:
+                        time.sleep(COLLECT["request_pause_sec"])
                 if received >= target_count_per_op:
                     break
         except Exception as exc:  # noqa: BLE001 - 한 업무구분 실패가 전체를 죽이지 않게

@@ -116,6 +116,8 @@ def build_notice(item: dict, as_of: date) -> Optional[dict]:
         "days_left": days_left,
         "budget": budget,
         "budget_src": budget_src,
+        "estimate": parse_money(payload.get("presmptPrce")),
+        "floor_rate": str(payload.get("sucsfbidLwltRate") or "").strip(),
         "method": str(payload.get("cntrctCnclsMthdNm") or "미기재"),
         "bid_method": str(payload.get("bidMethdNm") or ""),
         "industry": industry,

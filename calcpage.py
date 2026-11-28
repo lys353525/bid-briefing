@@ -214,6 +214,7 @@ def body_html(root: str = "../") -> str:
         <a class="jump" href="#calc-bond">② 보증금 계산</a>
         <a class="jump" href="#calc-faq">자주 묻는 질문</a>
       </div>
+      <p class="calc-from" id="calcFrom" hidden></p>
     </header>
   </div>
 
@@ -417,6 +418,10 @@ CALC_CSS = r"""
 .tool-lead{color:var(--ink-2);font-size:clamp(14.5px,1.7vw,16px);line-height:1.78;max-width:74ch}
 .tool-lead b{color:var(--ink)}
 .calc-jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.calc-from{margin:14px 0 0;padding:12px 15px;background:var(--brand-weak);color:#1c3f7d;
+  border-radius:12px;font-size:13.5px;line-height:1.65}
+.calc-from b{color:#123064;font-weight:750}
+.calc-from[hidden]{display:none}
 .jump{display:inline-flex;align-items:center;background:var(--brand-weak);color:var(--brand);
   font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:999px;border:1px solid transparent}
 .jump:hover{background:var(--brand);color:#fff;text-decoration:none}
@@ -739,5 +744,34 @@ CALC_JS = r"""
 
   bidCompute();
   bondCompute();
+
+  /* ---------------- ③ 공고 검색 페이지에서 넘어온 값 ----------------
+     /tools/bid-search.html 의 '투찰금액 계산' 버튼은
+     bid-calculator.html?base=117300000&name=공고명&from=search 로 연결된다.
+     base(기초금액)를 받으면 계산기를 바로 채우고, 어떤 공고에서 왔는지도 보여 준다. */
+  var params = new URLSearchParams(window.location.search);
+  var fromBase = parseNum(params.get("base") || params.get("amount"));
+  if (fromBase > 0) {
+    baseEl.value = money(String(Math.ceil(fromBase)));
+    var fromSajung = parseNum(params.get("sajung"));
+    if (fromSajung > 0) {
+      sajungEl.value = fromSajung.toFixed(2);
+      rangeEl.value = String(Math.min(104, Math.max(96, fromSajung)));
+    }
+    var fromFloor = parseNum(params.get("floor"));
+    if (fromFloor > 0) { floorEl.value = fromFloor; }
+    bidCompute();
+    var banner = qid("calcFrom");
+    if (banner) {
+      var rawName = String(params.get("name") || "").replace(/[<>&"']/g, "").slice(0, 60);
+      var head = rawName ? "<b>" + rawName + "</b> 공고의 " : "";
+      banner.innerHTML = head + "기초금액 <b>" + won(fromBase) + "원</b>으로 계산했습니다. " +
+        "공고 기초금액이 다르거나 사정률·낙찰하한율을 바꾸려면 아래 입력상자를 고치세요.";
+      banner.hidden = false;
+    }
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "calc_from_search", { value: Math.ceil(fromBase) });
+    }
+  }
 })();
 """

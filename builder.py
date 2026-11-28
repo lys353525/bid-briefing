@@ -8,6 +8,8 @@
   site/index.html              메인(전국 하이라이트·TOP10·지역 그리드·분야 뱃지)
   site/bids/{slug}.html        상세 리포트(표·지표 카드·FAQ·출처·JSON-LD)
   site/tools/bid-calculator.html  투찰금액·낙찰하한율·보증금 계산기(calcpage.py)
+  site/tools/bid-search.html      입찰공고 검색 페이지(searchpage.py)
+  site/tools/bid-search-data.js   검색용 공고 데이터(경량 JSON)
   site/assets/style.css        공통 스타일(외부 CDN 없음, 다크모드·모바일 대응)
   site/assets/favicon.svg      파비콘
   site/sitemap.xml             사이트맵
@@ -40,6 +42,7 @@ from pathlib import Path
 from typing import Optional
 
 import calcpage
+import searchpage
 from config import (
     BASE_DIR, KST, REGIONS, SITE_NAME, SITE_URL, SOURCE, log,
 )
@@ -554,6 +557,7 @@ def site_header(root: str, active: str = "") -> str:
     </a>
     <nav class="site-nav" aria-label="주요 메뉴">
       <a href="{root}index.html#highlight"{cls('national')}>전국 브리핑</a>
+      <a href="{root}{searchpage.TOOL_PATH}"{cls('search')}>공고 검색</a>
       <a href="{root}index.html#top10"{cls('top')}>예산 TOP 10</a>
       <a href="{root}index.html#regions"{cls('region')}>지역별</a>
       <a href="{root}index.html#fields"{cls('field')}>분야별</a>
@@ -1062,7 +1066,7 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
                   f'<span class="h1-num">{esc(total.get("value", ""))}</span></h1>')
         hero_lead = esc(nat.description)
         hero_window = nat.window_label
-        hero_link = f'<a class="hero-cta" href="bids/{esc(nat.slug)}.html">전국 브리핑 자세히 보기 <span aria-hidden="true">→</span></a>'
+        hero_link = f'<a class="hero-cta ghost" href="bids/{esc(nat.slug)}.html">전국 브리핑 자세히 보기 <span aria-hidden="true">→</span></a>'
     else:
         hero_stats, hero_h = [], '<h1>나라장터 입찰공고 주간 동향</h1>'
         hero_lead = "지역·분야별 입찰공고 동향 리포트입니다."
@@ -1171,8 +1175,8 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
       <p class="hero-lead">{hero_lead}</p>
       <div class="hero-stats">{''.join(hero_stats)}</div>
       <div class="hero-actions">
+        <a class="hero-cta" href="tools/bid-search.html">입찰공고 검색하기 <span aria-hidden="true">→</span></a>
         {hero_link}
-        <a class="hero-cta ghost" href="tools/bid-calculator.html">투찰금액 계산기 <span aria-hidden="true">→</span></a>
       </div>
       {sim_note}
     </div>
@@ -1220,7 +1224,33 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
 
   <section class="section section-alt" id="tools">
     <div class="wrap">
-      <div class="tool-promo">
+      <div class="tool-promo tool-promo-search">
+        <div class="tool-promo-copy">
+          <p class="tool-promo-kicker">무료 도구</p>
+          <h2>입찰공고 검색</h2>
+          <p>공고명·발주기관 키워드, 지역 17개 시·도, 분야(공사·용역·물품)로 지금 열려 있는
+          나라장터 공고를 바로 찾습니다. 기초금액·추정가격·입찰마감일을 한눈에 보고
+          버튼 하나로 투찰금액 계산까지 이어지세요. 설치·로그인 없이 무료입니다.</p>
+          <ul class="tool-promo-list">
+            <li>양산시 공사 입찰, 경남 용역 공고처럼 키워드로 바로 검색</li>
+            <li>마감임박순·최신순·기초금액순 정렬과 D-day 표시</li>
+            <li>공고 카드에서 투찰금액 계산기로 기초금액 자동 전달</li>
+          </ul>
+          <a class="tool-promo-cta" href="tools/bid-search.html">공고 검색 열기 <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="tool-promo-visual" aria-hidden="true">
+          <div class="mini-calc mini-search">
+            <p class="mini-label">검색 예시</p>
+            <p class="mini-amount small">양산시 공사</p>
+            <p class="mini-row"><span>지역</span><b>경남</b></p>
+            <p class="mini-row"><span>분야</span><b>시설공사</b></p>
+            <p class="mini-row"><span>정렬</span><b>마감임박순</b></p>
+            <p class="mini-result">마감 전 <b>12건</b></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-promo tool-promo-calc" style="margin-top:14px">
         <div class="tool-promo-copy">
           <p class="tool-promo-kicker">무료 도구</p>
           <h2>투찰금액·낙찰하한율·보증금 계산기</h2>
@@ -1289,6 +1319,10 @@ def index_body(pages: list[Page], site_url: str, built_at: str) -> str:
 def write_sitemap(site_dir: Path, site_url: str, pages: list[Page], built_at: str) -> int:
     items = [f"  <url><loc>{esc(site_url)}/</loc><lastmod>{built_at[:10]}</lastmod>"
              f"<changefreq>daily</changefreq><priority>1.0</priority></url>"]
+    # 실무자용 공고 검색 페이지 — 키워드·지역·마감임박으로 바로 진입하는 검색 유입의 주력
+    items.append(f"  <url><loc>{esc(site_url)}/{esc(searchpage.TOOL_PATH)}</loc>"
+                 f"<lastmod>{built_at[:10]}</lastmod><changefreq>daily</changefreq>"
+                 f"<priority>0.95</priority></url>")
     # 실무 도구(계산기)는 매일 갱신되는 데이터 페이지가 아니므로 priority만 높게 둔다.
     items.append(f"  <url><loc>{esc(site_url)}/{esc(calcpage.TOOL_PATH)}</loc>"
                  f"<lastmod>{built_at[:10]}</lastmod><changefreq>monthly</changefreq>"
@@ -1359,6 +1393,38 @@ def write_calculator(site_dir: Path, site_url: str, built_at: str,
     return out
 
 
+def write_search(site_dir: Path, site_url: str, built_at: str,
+                 pages: int = 0, sim: bool = False) -> Path:
+    """실무자용 입찰공고 검색 페이지(site/tools/bid-search.html)와 데이터 파일을 만든다.
+
+    매일 06:00 무인 빌드에서도 다시 생성되므로 수동 HTML을 두지 않는다.
+    데이터는 pseo.db 에서 읽는다(DB가 없으면 빈 검색 페이지 + 안내 문구).
+    """
+    root = "../"
+    out = site_dir / searchpage.TOOL_PATH
+    out.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        notices = searchpage.collect_notices()
+    except Exception as exc:  # noqa: BLE001 - 검색 페이지 실패가 전체 빌드를 막지 않게
+        log(f"입찰공고 검색 데이터 없이 빌드합니다: {exc}", "WARN")
+        notices = []
+    (site_dir / searchpage.DATA_PATH).write_text(
+        searchpage.data_js(notices, built_at), encoding="utf-8")
+    head = head_html(title=searchpage.TOOL_TITLE, description=searchpage.TOOL_DESC,
+                     canonical=f"{site_url}/{searchpage.TOOL_PATH}", root=root,
+                     ld=searchpage.ld_json(site_url, built_at, notices,
+                                           searchpage._epoch_ms(datetime.now(KST))))
+    out.write_text(f"""{head}
+<body class="tool">
+{site_header(root, 'search')}
+{searchpage.body_html(root, notices, built_at)}
+{site_footer(root, built_at, pages, sim)}
+</body>
+</html>
+""", encoding="utf-8")
+    return out
+
+
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="입찰동향 브리핑">
 <rect width="64" height="64" rx="15" fill="#14459c"/>
 <rect x="14" y="34" width="8" height="16" rx="3" fill="#ffffff"/>
@@ -1371,7 +1437,8 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="i
 def write_assets(site_dir: Path) -> None:
     assets = site_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    (assets / "style.css").write_text(CSS + calcpage.CALC_CSS, encoding="utf-8")
+    (assets / "style.css").write_text(CSS + calcpage.CALC_CSS + searchpage.SEARCH_CSS,
+                                     encoding="utf-8")
     (assets / "favicon.svg").write_text(FAVICON, encoding="utf-8")
 
 
@@ -1538,6 +1605,7 @@ button{font:inherit}
 .mini-calc{background:linear-gradient(135deg,#0b2250,#14459c 60%,#1c56bd);color:#fff;
   border-radius:16px;padding:18px 19px;box-shadow:0 14px 32px -20px rgba(11,34,80,.9)}
 .mini-label{font-size:11.5px;color:#bcd2ff;font-weight:700}
+.mini-amount.small{font-size:17.5px;letter-spacing:-.02em;margin-top:2px}
 .mini-amount{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .mini-row{display:flex;justify-content:space-between;gap:10px;margin-top:9px;font-size:12.5px;color:#cfe0ff}
 .mini-row b{color:#fff;font-variant-numeric:tabular-nums}
@@ -1886,6 +1954,8 @@ def build(*, output_dir: Path | str | None = None, site_dir: Path | str | None =
     (site_dir / "index.html").write_text(index_body(pages, site_url, built_at), encoding="utf-8")
     write_calculator(site_dir, site_url, built_at, pages=len(pages),
                      sim=any(p.is_sim for p in pages))
+    write_search(site_dir, site_url, built_at, pages=len(pages),
+                 sim=any(p.is_sim for p in pages))
     write_404(site_dir, site_url, built_at)
     sitemap_count = write_sitemap(site_dir, site_url, pages, built_at)
     write_robots(site_dir, site_url)
