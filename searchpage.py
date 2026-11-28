@@ -115,14 +115,20 @@ def collect_notices(*, db_path: Path | str | None = None, as_of: date | None = N
     #  2) 공고명+기관이 같은 건 → 아직 열려 있는 것, 그다음 최근 게시만
     #     (정정·재공고가 새 공고번호로 올라오면 같은 제목 카드가 두 장 보이기 때문)
     best: dict[tuple[str, str], dict] = {}
+    far_future = now_ms + 365 * 86_400_000
     for item in raw_items:
         if str(item.get("_simulated", "")).lower() in ("true", "1", "yes"):
             continue
         rec = build_notice(item, today)
         if not rec:
             continue
-        key = (rec["name"], rec["org"])
         close_ms = _epoch_ms(rec.get("close"))
+        # '각 수요기관'으로 표기되는 우수조달·제3자단가계약 카탈로그 레코드는 특정 입찰이
+        # 아니고 마감도 2030년대로 적혀 있다(금액도 9,090,909,090 같은 자리수 반복값).
+        # 실제로 투찰할 공고가 아니므로 검색 목록에서는 제외한다.
+        if rec["org"] == "각 수요기관" or (close_ms and close_ms > far_future):
+            continue
+        key = (rec["name"], rec["org"])
         rank = (close_ms > now_ms, rec["posted"], rec["ord"], rec["revision"])
         prev = best.get(key)
         if prev is None:
