@@ -568,6 +568,8 @@ body.tool .section:first-of-type{padding-top:26px}
    CSS 변수만 사용하므로 다크 모드도 그대로 대응된다.
    ========================================================================== */
 .search-head .search-stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+/* 한글 단어가 줄바꿈 때 쪼개지지 않게(모바일 390px에서 '입찰마 감일' 같이 깨지던 문제) */
+.tool-lead{word-break:keep-all;overflow-wrap:break-word}
 .search-stats li{display:flex;align-items:baseline;gap:7px;background:var(--surface);
   border:1px solid var(--line);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow)}
 .search-stats span{font-size:12px;font-weight:650;color:var(--muted)}
